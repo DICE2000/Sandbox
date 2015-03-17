@@ -9,6 +9,19 @@
 # 使用できます。
 #
 require 'jsonable'
+class Hash
+	#追加メソッド
+	def restore_rvdata2
+		return unless self.has_key?("json_class")
+		obj = nil
+		#クラス毎にハッシュを受け取って返すメソッドを用意する
+		if self["json_class"] == "RPG::Actor"
+			obj = RPG::Actor.new
+			obj.restore_actor(self)
+		end
+		return obj
+  end
+end
 class Color
   attr_accessor :red, :green, :blue, :alpha
   def initialize(data)
@@ -356,6 +369,40 @@ class RPG::Actor < RPG::BaseItem
 		@character_name = RPG::unpack_str(@character_name)
 		@face_name = RPG::unpack_str(@face_name)
 	end
+	def check_obj
+		p @name
+		p @face_index
+		p @character_index
+  	p @initial_level
+  	p @face_name
+  	p @class_id
+  	p @character_name
+  	p @id
+  	p @features
+  	p @note
+  	p @equips
+  	p @nickname
+  	p @description
+  	p @max_level
+  	p "------------------------"
+	end
+	def restore_actor(obj)
+  	@name = obj["@name"]
+  	@face_index = obj["@face_index"]
+  	@character_index = obj["@character_index"]
+  	@initial_level = obj["@initial_level"]
+  	@face_name = obj["@face_name"]
+  	@class_id = obj["@class_id"]
+  	@character_name = obj["@character_name"]
+  	@id = obj["@id"]
+  	@features = obj["@features"]
+  	@note = obj["@note"]
+  	@equips = obj["@equips"]
+  	@nickname = obj["@nickname"]
+  	@description = obj["@description"]
+  	@max_level = obj["@max_level"]
+  	check_obj
+  end
   def initialize
     super
     @nickname = ''

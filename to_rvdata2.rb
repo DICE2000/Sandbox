@@ -25,9 +25,23 @@ require_relative 'rgss3'
   	text += line
   }
   data = JSON.parse(text)
-  p data
+  data_trans = []
+  # 中身がハッシュになっている……
+  if data.is_a?(Array)
+	    data.each{ |d|
+	    	if d == nil
+	    		data_trans << d
+	    	# この辺でメソッドがいる
+	    	# まず先頭のjson_classを見てクラスを決定
+	    	# ハッシュ内の値に応じてクラスの変数を初期化してオブジェクトを生成
+	    	# 改めてそれを要素として返す
+	    	else
+	    		data_trans << d.restore_rvdata2
+	    	end
+	    }
+  end
   File.open('Data/temp/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
-    file.write(Marshal.dump(data))
+    file.write(Marshal.dump(data_trans))
   end
   f.close
 end
