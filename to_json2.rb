@@ -33,12 +33,12 @@ require_relative 'rgss3'
     data = Marshal.load(file.read)
     if data.is_a?(Array)
 	    data.each{ |d|
-	    	d.force_encording if d != nil
+	    	d.unpack_names if d != nil
 	    }
 	elsif data.is_a?(Hash)
-		data.force_encording if data.size != 0
+		data.unpack_names if data.size != 0
 	else
-		data.force_encording
+		data.unpack_names
     end
   end
   File.open('Data/'+File.basename(rvdata,'.rvdata2')+'.json', 'w') do |file|

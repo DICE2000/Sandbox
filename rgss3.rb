@@ -66,7 +66,7 @@ class Tone
 end
 
 module RPG
-	def self.reform_encode(str)
+	def self.unpack_str(str)
 		tmp_ary = str.unpack("U*")
 		str = ""
 		tmp_ary.each{ |c|
@@ -74,20 +74,25 @@ module RPG
 		}
 		return str
 	end
+	def self.pack_str(str)
+		ary = str.split("")
+		ary.pack("U")
+		return ary
+	end
 end
 
 class RPG::Map
   include Jsonable
-	def force_encording
-		@bgm.force_encording
-		@bgs.force_encording
-		@parallax_name = RPG::reform_encode(@parallax_name)
+	def unpack_names
+		@bgm.unpack_names
+		@bgs.unpack_names
+		@parallax_name = RPG::unpack_str(@parallax_name)
 		if @events != {}
 			tmp = {}
 			tmp = @events.dup
 			@events = {}
 			tmp.each{|k, v|
-				@events[k] = v.force_encording
+				@events[k] = v.unpack_names
 			}
 		end
 	end
@@ -156,8 +161,8 @@ class RPG::Map::Encounter
 end
 class RPG::MapInfo
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
   def initialize
     @name = ''
@@ -176,9 +181,9 @@ class RPG::MapInfo
 end
 class RPG::Event
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@pages.each{|i| i.force_encording}
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@pages.each{|i| i.unpack_names}
 	end
   def initialize(x, y)
     @id = 0
@@ -195,9 +200,9 @@ class RPG::Event
 end
 class RPG::Event::Page
   include Jsonable
-  def force_encording
-		@graphic.force_encording
-		@list.each{|i| i.force_encording}
+  def unpack_names
+		@graphic.unpack_names
+		@list.each{|i| i.unpack_names}
   end
   def initialize
     @condition = RPG::Event::Page::Condition.new
@@ -261,8 +266,8 @@ class RPG::Event::Page::Condition
 end
 class RPG::Event::Page::Graphic
   include Jsonable
-  def force_encording
-		@character_name = RPG::reform_encode(@character_name)
+  def unpack_names
+		@character_name = RPG::unpack_str(@character_name)
 	end
   def initialize
     @tile_id = 0
@@ -279,13 +284,13 @@ class RPG::Event::Page::Graphic
 end
 class RPG::EventCommand
 	include Jsonable
-	def force_encording
+	def unpack_names
 		tmp = []
 		tmp = @parameters.dup
 		@parameters = []
 		tmp.each{|i|
 			if i.is_a?(String)
-				@parameters << RPG::reform_encode(i).dup
+				@parameters << RPG::unpack_str(i).dup
 			else
 				@parameters << i
 			end
@@ -324,10 +329,10 @@ class RPG::MoveCommand
 end
 class RPG::BaseItem
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@description = RPG::reform_encode(@description)
-		@note = RPG::reform_encode(@note)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@description = RPG::unpack_str(@description)
+		@note = RPG::unpack_str(@note)
 	end
   def initialize
     @id = 0
@@ -346,10 +351,10 @@ class RPG::BaseItem
 end
 class RPG::Actor < RPG::BaseItem
 	include Jsonable
-	def force_encording
-		@nickname = RPG::reform_encode(@nickname)
-		@character_name = RPG::reform_encode(@character_name)
-		@face_name = RPG::reform_encode(@face_name)
+	def unpack_names
+		@nickname = RPG::unpack_str(@nickname)
+		@character_name = RPG::unpack_str(@character_name)
+		@face_name = RPG::unpack_str(@face_name)
 	end
   def initialize
     super
@@ -400,8 +405,8 @@ class RPG::Class < RPG::BaseItem
 end
 class RPG::Class::Learning
 	include Jsonable
-	def force_encording
-		@note = RPG::reform_encode(@note)
+	def unpack_names
+		@note = RPG::unpack_str(@note)
 	end
   def initialize
     @level = 1
@@ -440,9 +445,9 @@ class RPG::UsableItem < RPG::BaseItem
 end
 class RPG::Skill < RPG::UsableItem
 	include Jsonable
-	def force_encording
-		@message1 = RPG::reform_encode(@message1)
-		@message2 = RPG::reform_encode(@message2)
+	def unpack_names
+		@message1 = RPG::unpack_str(@message1)
+		@message2 = RPG::unpack_str(@message2)
 	end
   def initialize
     super
@@ -512,8 +517,8 @@ class RPG::Armor < RPG::EquipItem
 end
 class RPG::Enemy < RPG::BaseItem
 	include Jsonable
-	def force_encording
-		@battler_name = RPG::reform_encode(@battler_name)
+	def unpack_names
+		@battler_name = RPG::unpack_str(@battler_name)
 	end
   def initialize
     super
@@ -538,11 +543,11 @@ class RPG::Enemy < RPG::BaseItem
 end
 class RPG::State < RPG::BaseItem
 	include Jsonable
-	def force_encording
-		@message1 = RPG::reform_encode(@message1)
-		@message2 = RPG::reform_encode(@message2)
-		@message3 = RPG::reform_encode(@message3)
-		@message4 = RPG::reform_encode(@message4)
+	def unpack_names
+		@message1 = RPG::unpack_str(@message1)
+		@message2 = RPG::unpack_str(@message2)
+		@message3 = RPG::unpack_str(@message3)
+		@message4 = RPG::unpack_str(@message4)
 	end
   def initialize
     super
@@ -592,8 +597,8 @@ class RPG::BaseItem::Feature
 end
 class RPG::UsableItem::Damage
 	include Jsonable
-	def force_encording
-		@formula = RPG::reform_encode(@formula)
+	def unpack_names
+		@formula = RPG::unpack_str(@formula)
 	end
   def initialize
     @type = 0
@@ -649,8 +654,8 @@ class RPG::Enemy::Action
 end
 class RPG::Troop
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
   def initialize
     @id = 0
@@ -678,8 +683,8 @@ class RPG::Troop::Member
 end
 class RPG::Troop::Page
 	include Jsonable
-	def force_encording
-		@list.each{|i| i.force_encording}
+	def unpack_names
+		@list.each{|i| i.unpack_names}
 	end
   def initialize
     @condition = RPG::Troop::Page::Condition.new
@@ -721,10 +726,10 @@ class RPG::Troop::Page::Condition
 end
 class RPG::Animation
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@animation1_name = RPG::reform_encode(@animation1_name)
-		@animation2_name = RPG::reform_encode(@animation2_name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@animation1_name = RPG::unpack_str(@animation1_name)
+		@animation2_name = RPG::unpack_str(@animation2_name)
 	end
   def initialize
     @id = 0
@@ -775,11 +780,11 @@ class RPG::Animation::Timing
 end
 class RPG::Tileset
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@note = RPG::reform_encode(@note)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@note = RPG::unpack_str(@note)
 		@tileset_names.each{|i|
-			i = RPG::reform_encode(i)
+			i = RPG::unpack_str(i)
 		}
 	end
   def initialize
@@ -802,9 +807,9 @@ class RPG::Tileset
 end
 class RPG::CommonEvent
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@list.each{|i| i.force_encording}
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@list.each{|i| i.unpack_names}
 	end
   def initialize
     @id = 0
@@ -827,60 +832,60 @@ class RPG::CommonEvent
 end
 class RPG::System
 	include Jsonable
-	def force_encording
-		@game_title = RPG::reform_encode(@game_title)
-		@currency_unit = RPG::reform_encode(@currency_unit)
-		@title1_name = RPG::reform_encode(@title1_name)
-		@title2_name = RPG::reform_encode(@title2_name)
-    @battleback1_name = RPG::reform_encode(@battleback1_name)
-    @battleback2_name = RPG::reform_encode(@battleback2_name)
-    @battler_name = RPG::reform_encode(@battler_name)
-    @boat.force_encording
-    @ship.force_encording
-    @airship.force_encording
-    @title_bgm.force_encording
-    @battle_bgm.force_encording
-    @battle_end_me.force_encording
-    @gameover_me.force_encording
-    @sounds.each{|i| i.force_encording}
-    @terms.force_encording
+	def unpack_names
+		@game_title = RPG::unpack_str(@game_title)
+		@currency_unit = RPG::unpack_str(@currency_unit)
+		@title1_name = RPG::unpack_str(@title1_name)
+		@title2_name = RPG::unpack_str(@title2_name)
+    @battleback1_name = RPG::unpack_str(@battleback1_name)
+    @battleback2_name = RPG::unpack_str(@battleback2_name)
+    @battler_name = RPG::unpack_str(@battler_name)
+    @boat.unpack_names
+    @ship.unpack_names
+    @airship.unpack_names
+    @title_bgm.unpack_names
+    @battle_bgm.unpack_names
+    @battle_end_me.unpack_names
+    @gameover_me.unpack_names
+    @sounds.each{|i| i.unpack_names}
+    @terms.unpack_names
 		tmp = []
 		tmp = @elements.dup
 		@elements = []
 		tmp.each{|i|
-				@elements << RPG::reform_encode(i).dup if i != nil
+				@elements << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @skill_types.dup
 		@skill_types = []
 		tmp.each{|i|
-				@skill_types << RPG::reform_encode(i).dup if i != nil
+				@skill_types << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @weapon_types.dup
 		@weapon_types = []
 		tmp.each{|i|
-				@weapon_types << RPG::reform_encode(i).dup if i != nil
+				@weapon_types << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @armor_types.dup
 		@armor_types = []
 		tmp.each{|i|
-				@armor_types << RPG::reform_encode(i).dup if i != nil
+				@armor_types << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @switches.dup
 		@switches = []
 		tmp.each{|i|
-			@switches << RPG::reform_encode(i).dup if i != nil
+			@switches << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @variables.dup
 		@variables = []
 		tmp.each{|i|
-			@variables << RPG::reform_encode(i).dup if i != nil
+			@variables << RPG::unpack_str(i).dup if i != nil
 		}
-		@terms.force_encording
+		@terms.unpack_names
 	end
   def initialize
     @game_title = ''
@@ -969,9 +974,9 @@ class RPG::System
 end
 class RPG::System::Vehicle
 	include Jsonable
-	def force_encording
-		@character_name = RPG::reform_encode(@character_name)
-		@bgm.force_encording
+	def unpack_names
+		@character_name = RPG::unpack_str(@character_name)
+		@bgm.unpack_names
   end
   def initialize
     @character_name = ''
@@ -990,11 +995,11 @@ class RPG::System::Vehicle
 end
 class RPG::System::Terms
 	include Jsonable
-	def force_encording
-		@basic.each{|i| i = RPG::reform_encode(i)}
-		@params.each{|i| i = RPG::reform_encode(i)}
-		@etypes.each{|i| i = RPG::reform_encode(i)}
-		@commands.each{|i| i = RPG::reform_encode(i)}
+	def unpack_names
+		@basic.each{|i| i = RPG::unpack_str(i)}
+		@params.each{|i| i = RPG::unpack_str(i)}
+		@etypes.each{|i| i = RPG::unpack_str(i)}
+		@commands.each{|i| i = RPG::unpack_str(i)}
 	end
   def initialize
     @basic = Array.new(8) {''}
@@ -1020,8 +1025,8 @@ class RPG::System::TestBattler
 end
 class RPG::AudioFile
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
   def initialize(name = '', volume = 100, pitch = 100)
     @name = name

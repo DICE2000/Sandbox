@@ -4,25 +4,29 @@ require 'zlib'
 require_relative 'rgss3'
 [
   'Data/Actors.json',
-  'Data/Animations.json',
-  'Data/Armors.json',
-  'Data/Classes.json',
-  'Data/CommonEvents.json',
-  'Data/Enemies.json',
-  'Data/Items.json',
-  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
+#  'Data/Animations.json',
+#  'Data/Armors.json',
+#  'Data/Classes.json',
+#  'Data/CommonEvents.json',
+#  'Data/Enemies.json',
+#  'Data/Items.json',
+#  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
 #  'Data/MapInfos.json',
-  'Data/Skills.json',
-  'Data/States.json',
-  'Data/System.json',
-  'Data/Tilesets.json',
-  'Data/Troops.json',
-  'Data/Weapons.json'
+#  'Data/Skills.json',
+#  'Data/States.json',
+#  'Data/System.json',
+#  'Data/Tilesets.json',
+#  'Data/Troops.json',
+#  'Data/Weapons.json'
 ].each do |json|
-  data = ''
-  f = File.open(json)
-  data = JSON.load(f)
-  File.open('Data/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
+  text = ''
+  f = File.open(json, 'r:utf-8')
+  f.each {|line|
+  	text += line
+  }
+  data = JSON.parse(text)
+  p data
+  File.open('Data/temp/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
     file.write(Marshal.dump(data))
   end
   f.close
