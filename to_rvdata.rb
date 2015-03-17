@@ -7,7 +7,7 @@
 # to_rvdata2.rbをリネームして拡張子変えただけ
 # デバッグはまだ
 #
-require 'json'
+require 'jsonable'
 require 'zlib'
 require_relative 'rgss2'
 [

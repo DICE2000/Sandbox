@@ -10,7 +10,6 @@
 #
 require 'jsonable'
 class Color
-  include Jsonable
   attr_accessor :red, :green, :blue, :alpha
   def initialize(data)
     @red, @green, @blue, @alpha = *data
@@ -23,7 +22,6 @@ class Color
   end
 end
 class Table
-  include Jsonable
   def initialize(data)
     @num_of_dimensions,
     @xsize, @ysize, @zsize,
@@ -55,7 +53,6 @@ class Table
   end
 end
 class Tone
-  include Jsonable
   attr_accessor :red, :green, :blue, :gray
   def initialize(data)
     @red, @green, @blue, @gray = *data
@@ -415,7 +412,6 @@ end
 class RPG::Skill < RPG::UsableItem
 	include Jsonable
 	def force_encording
-		super
 		@message1 = RPG::reform_encode(@message1)
 		@message2 = RPG::reform_encode(@message2)
 	end
