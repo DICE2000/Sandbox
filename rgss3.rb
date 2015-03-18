@@ -1,5 +1,5 @@
 # encoding: utf-8
-# rgss2.rb
+# rgss3.rb
 # author: dice2000
 # original author: aoitaku
 # https://gist.github.com/aoitaku/7822424
@@ -9,24 +9,8 @@
 # 使用できます。
 #
 require 'jsonable'
-class Hash
-	#追加メソッド
-	def restore_rvdata2
-		return unless self.has_key?("json_class")
-		obj = nil
-		#クラス毎にハッシュを受け取って返すメソッドを用意する
-		if self["json_class"] == "RPG::Actor"
-			obj = RPG::Actor.new
-			val = obj.instance_variables
-			val.each{|d|
-				obj.instance_variable_set(d, self[d.to_s])
-			}
-			#obj.restore_obj(self)
-		end
-		return obj
-  end
-end
 class Color
+  include Jsonable
   attr_accessor :red, :green, :blue, :alpha
   def initialize(data)
     @red, @green, @blue, @alpha = *data
@@ -39,6 +23,7 @@ class Color
   end
 end
 class Table
+  include Jsonable
   def initialize(data)
     @num_of_dimensions,
     @xsize, @ysize, @zsize,
@@ -70,6 +55,7 @@ class Table
   end
 end
 class Tone
+  include Jsonable
   attr_accessor :red, :green, :blue, :gray
   def initialize(data)
     @red, @green, @blue, @gray = *data
@@ -96,14 +82,6 @@ module RPG
 		ary.pack("U")
 		return ary
 	end
-	def self.restore_value(value_name, hash_name)
-		str = "@" + value_name + "=" + hash_name + "\[\"" + value_name + "\"\]"
-		return str
-	end
-	def self.restore(h)
-		ary = h.keys
-		#instance_variables
-	end
 end
 
 class RPG::Map
@@ -120,30 +98,6 @@ class RPG::Map
 				@events[k] = v.unpack_names
 			}
 		end
-	end
-	def restore_obj(obj)
-    @display_name = obj["@display_name"]
-    @tileset_id = obj["@tileset_id"]
-    @scroll_type = obj["@scroll_type"]
-    @specify_battleback = obj["@specify_battleback"]
-    @battleback_floor_name = obj[""]
-    @battleback_wall_name = obj["@battleback_wall_name"]
-    @autoplay_bgm = obj["@autoplay_bgm"]
-    @bgm.restore_obj(obj["@bgm"])
-    @autoplay_bgs = obj["@autoplay_bgs"]
-    @bgs.restore_obj(obj["@bgs"])
-    @disable_dashing = obj["@disable_dashing"]
-    @encounter_list.restore_obj(obj["@encounter_list"])
-    @encounter_step = obj["@encounter_step"]
-    @parallax_name = obj["@parallax_name"]
-    @parallax_loop_x = obj["@parallax_loop_x"]
-    @parallax_loop_y =obj["@parallax_loop_y"]
-    @parallax_sx = obj["@parallax_sx"]
-    @parallax_sy = obj["@parallax_sy"]
-    @parallax_show = obj["@parallax_show"]
-    @note = obj["@note"]
-    @data = Table.new(width, height, 4)
-    @events = {}
 	end
   def initialize(width, height)
     @display_name = ''
@@ -198,11 +152,6 @@ class RPG::Map
 end
 class RPG::Map::Encounter
   include Jsonable
-	def restore_obj(obj)
-    @troop_id = obj["@troop_id"]
-    @weight = obj["@weight"]
-    @region_set = obj["@region_set"]
-  end
   def initialize
     @troop_id = 1
     @weight = 10
@@ -216,8 +165,6 @@ class RPG::MapInfo
 	include Jsonable
 	def unpack_names
 		@name = RPG::unpack_str(@name)
-	end
-	def restore_obj(obj)
 	end
   def initialize
     @name = ''
@@ -240,8 +187,6 @@ class RPG::Event
 		@name = RPG::unpack_str(@name)
 		@pages.each{|i| i.unpack_names}
 	end
-	def restore_obj(obj)
-	end
   def initialize(x, y)
     @id = 0
     @name = ''
@@ -261,8 +206,6 @@ class RPG::Event::Page
 		@graphic.unpack_names
 		@list.each{|i| i.unpack_names}
   end
-	def restore_obj(obj)
-	end
   def initialize
     @condition = RPG::Event::Page::Condition.new
     @graphic = RPG::Event::Page::Graphic.new
@@ -294,8 +237,6 @@ class RPG::Event::Page
 end
 class RPG::Event::Page::Condition
   include Jsonable
- 	def restore_obj(obj)
-	end
   def initialize
     @switch1_valid = false
     @switch2_valid = false
@@ -330,8 +271,6 @@ class RPG::Event::Page::Graphic
   def unpack_names
 		@character_name = RPG::unpack_str(@character_name)
 	end
-	def restore_obj(obj)
-	end
   def initialize
     @tile_id = 0
     @character_name = ''
@@ -359,8 +298,6 @@ class RPG::EventCommand
 			end
 		}
 	end
-	def restore_obj(obj)
-	end
   def initialize(code = 0, indent = 0, parameters = [])
     @code = code
     @indent = indent
@@ -372,8 +309,6 @@ class RPG::EventCommand
 end
 class RPG::MoveRoute
   include Jsonable
- 	def restore_obj(obj)
-	end
   def initialize
     @repeat = true
     @skippable = false
@@ -387,8 +322,6 @@ class RPG::MoveRoute
 end
 class RPG::MoveCommand
   include Jsonable
- 	def restore_obj(obj)
-	end
   def initialize(code = 0, parameters = [])
     @code = code
     @parameters = parameters
@@ -402,8 +335,6 @@ class RPG::BaseItem
 		@name = RPG::unpack_str(@name)
 		@description = RPG::unpack_str(@description)
 		@note = RPG::unpack_str(@note)
-	end
-	def restore_obj(obj)
 	end
   def initialize
     @id = 0
@@ -485,8 +416,6 @@ class RPG::Actor < RPG::BaseItem
 end
 class RPG::Class < RPG::BaseItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     super
     @exp_params = [30,20,30,30]
@@ -515,8 +444,6 @@ class RPG::Class::Learning
 	def unpack_names
 		@note = RPG::unpack_str(@note)
 	end
-	def restore_obj(obj)
-	end
   def initialize
     @level = 1
     @skill_id = 1
@@ -528,8 +455,6 @@ class RPG::Class::Learning
 end
 class RPG::UsableItem < RPG::BaseItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     super
     @scope = 0
@@ -560,8 +485,6 @@ class RPG::Skill < RPG::UsableItem
 		@message1 = RPG::unpack_str(@message1)
 		@message2 = RPG::unpack_str(@message2)
 	end
-	def restore_obj(obj)
-	end
   def initialize
     super
     @scope = 1
@@ -583,8 +506,6 @@ class RPG::Skill < RPG::UsableItem
 end
 class RPG::Item < RPG::UsableItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     super
     @scope = 7
@@ -598,8 +519,6 @@ class RPG::Item < RPG::UsableItem
 end
 class RPG::EquipItem < RPG::BaseItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     super
     @price = 0
@@ -612,8 +531,6 @@ class RPG::EquipItem < RPG::BaseItem
 end
 class RPG::Weapon < RPG::EquipItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     super
     @wtype_id = 0
@@ -626,8 +543,6 @@ class RPG::Weapon < RPG::EquipItem
 end
 class RPG::Armor < RPG::EquipItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     super
     @atype_id = 0
@@ -640,8 +555,6 @@ class RPG::Enemy < RPG::BaseItem
 	include Jsonable
 	def unpack_names
 		@battler_name = RPG::unpack_str(@battler_name)
-	end
-	def restore_obj(obj)
 	end
   def initialize
     super
@@ -671,8 +584,6 @@ class RPG::State < RPG::BaseItem
 		@message2 = RPG::unpack_str(@message2)
 		@message3 = RPG::unpack_str(@message3)
 		@message4 = RPG::unpack_str(@message4)
-	end
-	def restore_obj(obj)
 	end
   def initialize
     super
@@ -711,8 +622,6 @@ end
 
 class RPG::BaseItem::Feature
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize(code = 0, data_id = 0, value = 0)
     @code = code
     @data_id = data_id
@@ -726,8 +635,6 @@ class RPG::UsableItem::Damage
 	include Jsonable
 	def unpack_names
 		@formula = RPG::unpack_str(@formula)
-	end
-	def restore_obj(obj)
 	end
   def initialize
     @type = 0
@@ -744,8 +651,6 @@ class RPG::UsableItem::Damage
 end
 class RPG::UsableItem::Effect
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize(code = 0, data_id = 0, value1 = 0, value2 = 0)
     @code = code
     @data_id = data_id
@@ -759,8 +664,6 @@ class RPG::UsableItem::Effect
 end
 class RPG::Enemy::DropItem
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     @kind = 0
     @data_id = 1
@@ -772,8 +675,6 @@ class RPG::Enemy::DropItem
 end
 class RPG::Enemy::Action
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     @skill_id = 1
     @condition_type = 0
@@ -792,8 +693,6 @@ class RPG::Troop
 	def unpack_names
 		@name = RPG::unpack_str(@name)
 	end
-	def restore_obj(obj)
-	end
   def initialize
     @id = 0
     @name = ''
@@ -807,8 +706,6 @@ class RPG::Troop
 end
 class RPG::Troop::Member
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     @enemy_id = 1
     @x = 0
@@ -825,8 +722,6 @@ class RPG::Troop::Page
 	def unpack_names
 		@list.each{|i| i.unpack_names}
 	end
-	def restore_obj(obj)
-	end
   def initialize
     @condition = RPG::Troop::Page::Condition.new
     @span = 0
@@ -838,8 +733,6 @@ class RPG::Troop::Page
 end
 class RPG::Troop::Page::Condition
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     @turn_ending = false
     @turn_valid = false
@@ -874,8 +767,6 @@ class RPG::Animation
 		@animation1_name = RPG::unpack_str(@animation1_name)
 		@animation2_name = RPG::unpack_str(@animation2_name)
 	end
-	def restore_obj(obj)
-	end
   def initialize
     @id = 0
     @name = ''
@@ -901,24 +792,20 @@ class RPG::Animation
 end
 class RPG::Animation::Frame
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     @cell_max = 0
-    @cell_data = Table.new(0, 0)
+    @cell_data = Table.new([0, 0])
   end
   attr_accessor :cell_max
   attr_accessor :cell_data
 end
 class RPG::Animation::Timing
 	include Jsonable
-	def restore_obj(obj)
-	end
   def initialize
     @frame = 0
     @se = RPG::SE.new('', 80)
     @flash_scope = 0
-    @flash_color = Color.new(255,255,255,255)
+    @flash_color = Color.new([255,255,255,255])
     @flash_duration = 5
   end
   attr_accessor :frame
@@ -935,8 +822,6 @@ class RPG::Tileset
 		@tileset_names.each{|i|
 			i = RPG::unpack_str(i)
 		}
-	end
-	def restore_obj(obj)
 	end
   def initialize
     @id = 0
@@ -961,8 +846,6 @@ class RPG::CommonEvent
 	def unpack_names
 		@name = RPG::unpack_str(@name)
 		@list.each{|i| i.unpack_names}
-	end
-	def restore_obj(obj)
 	end
   def initialize
     @id = 0
@@ -1040,8 +923,6 @@ class RPG::System
 		}
 		@terms.unpack_names
 	end
-	def restore_obj(obj)
-	end
   def initialize
     @game_title = ''
     @version_id = 0
@@ -1067,7 +948,7 @@ class RPG::System
     @opt_floor_death = false
     @opt_display_tp = true
     @opt_extra_exp = false
-    @window_tone = Tone.new(0,0,0)
+    @window_tone = Tone.new([0,0,0])
     @title_bgm = RPG::BGM.new
     @battle_bgm = RPG::BGM.new
     @battle_end_me = RPG::ME.new
@@ -1156,12 +1037,6 @@ class RPG::System::Terms
 		@etypes.each{|i| i = RPG::unpack_str(i)}
 		@commands.each{|i| i = RPG::unpack_str(i)}
 	end
-	def restore_obj(obj)
-		@basic = obj["@basic"]
-		@params = obj["@params"]
-		@etypes = obj["@etypes"]
-		@commands = obj["@commands"]
-	end
   def initialize
     @basic = Array.new(8) {''}
     @params = Array.new(8) {''}
@@ -1175,11 +1050,6 @@ class RPG::System::Terms
 end
 class RPG::System::TestBattler
 	include Jsonable
-	def restore_obj(obj)
-		@actor_id = obj["@actor_id"]
-		@level = obj["@level"]
-		@equips = obj["@equips"]
-	end
   def initialize
     @actor_id = 1
     @level = 1
@@ -1193,11 +1063,6 @@ class RPG::AudioFile
 	include Jsonable
 	def unpack_names
 		@name = RPG::unpack_str(@name)
-	end
-	def restore_obj(obj)
-		@name = obj["@name"]
-		@volume = obj["@volume"]
-		@pitch = obj["@pitch"]
 	end
   def initialize(name = '', volume = 100, pitch = 100)
     @name = name

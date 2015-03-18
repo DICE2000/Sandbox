@@ -2,22 +2,81 @@
 require 'jsonable'
 require 'zlib'
 require_relative 'rgss3'
+
+#追加メソッド
+def restore_rvdata2(list)
+	return unless list.has_key?("json_class")
+	obj = nil
+	case list["json_class"]
+		when "Color"
+			obj = Color.new([0,0,0])
+		when "Table"
+			obj = Table.new([0,0,0])
+		when "Tone"
+			obj = Tone.new([0,0,0])
+		when "RPG::Event"
+			obj = RPG::Event.new(list["@x"], list["@y"])
+		when "RPG::EventCommand"
+			obj = RPG::EventCommand.new(list["@code"], list["@indent"], list["@parameters"])
+		when "RPG::MoveCommand"
+			obj = RPG::MoveCommand.new(list["@code"], list["@parameters"])
+		when "RPG::BaseItem::Feature"
+			obj = RPG::BaseItem::Feature.new(list["@code"], list["@data_id"], list["@value"])
+		when "RPG::UsableItem::Effect"
+			obj = RPG::UsableItem::Effect.new(list["@code"], list["@data_id"], list["@value1"], list["@value2"])
+		when "RPG::Map"
+			obj = RPG::Map.new(list["@width"], list["@height"])
+		when "RPG::BGM"
+			obj = RPG::BGM.new(list["@name"], list["@volume"], list["@pitch"])
+		when "RPG::BGS"
+			obj = RPG::BGS.new(list["@name"], list["@volume"], list["@pitch"])
+		when "RPG::ME"
+			obj = RPG::ME.new(list["@name"], list["@volume"], list["@pitch"])
+		when "RPG::SE"
+			obj = RPG::SE.new(list["@name"], list["@volume"], list["@pitch"])
+		else
+			str = "obj=" + list["json_class"] + ".new"
+			eval(str)
+	end
+	iterate_setting_value(obj, list)
+	return obj
+end
+
+def iterate_setting_value(target, list)
+	val = target.instance_variables
+	val.each{|d|
+		# 値がクラスオブジェクト
+		if list[d.to_s].is_a?(Hash)
+			target.instance_variable_set(d, restore_rvdata2(list[d.to_s]))
+		# 値がクラスオブジェクトの配列
+	elsif list[d.to_s].is_a?(Array) && list[d.to_s][0].is_a?(Hash)
+			data_trans = []
+			list[d.to_s].each{|d|
+				data_trans << restore_rvdata2(d)
+    	}
+    	target.instance_variable_set(d, data_trans)
+		else
+			target.instance_variable_set(d, list[d.to_s])
+		end
+	}
+end
+
 [
   'Data/Actors.json',
-#  'Data/Animations.json',
-#  'Data/Armors.json',
+  'Data/Animations.json',
+  'Data/Armors.json',
 #  'Data/Classes.json',
-#  'Data/CommonEvents.json',
-#  'Data/Enemies.json',
-#  'Data/Items.json',
+  'Data/CommonEvents.json',
+  'Data/Enemies.json',
+  'Data/Items.json',
 #  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
 #  'Data/MapInfos.json',
-#  'Data/Skills.json',
-#  'Data/States.json',
-#  'Data/System.json',
+  'Data/Skills.json',
+  'Data/States.json',
+  'Data/System.json',
 #  'Data/Tilesets.json',
-#  'Data/Troops.json',
-#  'Data/Weapons.json'
+  'Data/Troops.json',
+  'Data/Weapons.json'
 ].each do |json|
   text = ''
   f = File.open(json, 'r:utf-8')
@@ -25,38 +84,21 @@ require_relative 'rgss3'
   	text += line
   }
   data = JSON.parse(text)
-  data_trans = []
-  # 中身がハッシュになっている……
+  data_trans = nil
   if data.is_a?(Array)
-	    data.each{ |d|
-	    	if d == nil
-	    		data_trans << d
-	    	# この辺でメソッドがいる
-	    	# まず先頭のjson_classを見てクラスを決定
-	    	# ハッシュ内の値に応じてクラスの変数を初期化してオブジェクトを生成
-	    	# 改めてそれを要素として返す
-	    	else
-	    		data_trans << d.restore_rvdata2
-	    	end
-	    }
-  end
+  	data_trans = []
+    data.each{ |d|
+    	if d == nil
+    		data_trans << d
+    	else
+    		data_trans << restore_rvdata2(d)
+    	end
+    }
+  elsif data.is_a?(Hash)	
+		data_trans = restore_rvdata2(data)
+	end
   File.open('Data/temp/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
     file.write(Marshal.dump(data_trans))
   end
   f.close
 end
-#data = YAML.load_file('Data/Scripts.yml')
-#Dir.glob('Data/Scripts/*.rb') do |rb|
-#  File.open(rb, 'rb') do |file|
-#    file.read.gsub(/(\r\n|\r|\n)/, "\n").split("# -*- END_OF_SCRIPT -*-\n\n").map do |src|
-#      head, lf, script = src.partition("\n")
-#      id = /id: (\d+)/.match(head).to_a.at(1).to_i
-#      name = File.basename(rb, '.rb')
-#      name = '' if name == "( NONAME )"
-#      data[data.index(id)] = [id, name, Zlib::Deflate.deflate(script.chop)]
-#    end
-#  end
-#end
-#File.open('Data/Scripts.rvdata2', 'wb') do |file|
-#  file.write(Marshal.dump(data))
-#end
