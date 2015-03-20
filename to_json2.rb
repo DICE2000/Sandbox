@@ -4,8 +4,6 @@
 # original author: aoitaku
 # https://gist.github.com/aoitaku/7822424
 # 
-# to_yaml.rbをjsonに対応させたもの
-# デバッグ途中
 #
 require 'jsonable'
 require 'zlib'
@@ -35,10 +33,10 @@ require_relative 'rgss3'
 	    data.each{ |d|
 	    	d.unpack_names if d != nil
 	    }
-	elsif data.is_a?(Hash)
-		data.unpack_names if data.size != 0
-	else
-		data.unpack_names
+		elsif data.is_a?(Hash)
+			data.unpack_names if data.size != 0
+		else
+			data.unpack_names
     end
   end
   File.open('Data/'+File.basename(rvdata,'.rvdata2')+'.json', 'w') do |file|

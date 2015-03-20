@@ -122,7 +122,8 @@ class RPG::Map
     @parallax_sy = 0
     @parallax_show = false
     @note = ''
-    @data = Table.new(width, height, 4)
+    #@data = Table.new(width, height, 4)
+    @data = nil
     @events = {}
   end
   attr_accessor :display_name
@@ -419,13 +420,16 @@ class RPG::Class < RPG::BaseItem
   def initialize
     super
     @exp_params = [30,20,30,30]
-    @params = Table.new(8,100)
-    (1..99).each do |i|
-      @params[0,i] = 400+i*50
-      @params[1,i] = 80+i*10
-      (2..5).each {|j| @params[j,i] = 15+i*5/4 }
-      (6..7).each {|j| @params[j,i] = 30+i*5/2 }
-    end
+    @params = nil
+    # num_of_dimensions, xsize, ysize, zsize, num_of_elements, elements
+    #@params = Table.new([2, 8, 100, 1, 800, Array.new(800) { [] }])
+    #@params = Table.new([8,100])
+    #(1..99).each do |i|
+    #  @params[0,i] = 400+i*50
+    #  @params[1,i] = 80+i*10
+    #  (2..5).each {|j| @params[j,i] = 15+i*5/4 }
+    #  (6..7).each {|j| @params[j,i] = 30+i*5/2 }
+    #end
     @learnings = []
     @features.push(RPG::BaseItem::Feature.new(23, 0, 1))
     @features.push(RPG::BaseItem::Feature.new(22, 0, 0.95))
@@ -794,7 +798,8 @@ class RPG::Animation::Frame
 	include Jsonable
   def initialize
     @cell_max = 0
-    @cell_data = Table.new([0, 0])
+    @cell_data = nil
+    #@cell_data = Table.new(0, 0)
   end
   attr_accessor :cell_max
   attr_accessor :cell_data
@@ -828,10 +833,11 @@ class RPG::Tileset
     @mode = 1
     @name = ''
     @tileset_names = Array.new(9).collect{''}
-    @flags = Table.new(8192)
-    @flags[0] = 0x0010
-    (2048..2815).each {|i| @flags[i] = 0x000F}
-    (4352..8191).each {|i| @flags[i] = 0x000F}
+    @flags = nil
+    #@flags = Table.new(8192)
+    #@flags[0] = 0x0010
+    #(2048..2815).each {|i| @flags[i] = 0x000F}
+    #(4352..8191).each {|i| @flags[i] = 0x000F}
     @note = ''
   end
   attr_accessor :id

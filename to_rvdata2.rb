@@ -9,11 +9,11 @@ def restore_rvdata2(list)
 	obj = nil
 	case list["json_class"]
 		when "Color"
-			obj = Color.new([0,0,0])
+			obj = Color.new([0,0,0,0])
 		when "Table"
-			obj = Table.new([0,0,0])
+			obj = Table.new([1,1,0,0,1,[]])
 		when "Tone"
-			obj = Tone.new([0,0,0])
+			obj = Tone.new([0,0,0,0])
 		when "RPG::Event"
 			obj = RPG::Event.new(list["@x"], list["@y"])
 		when "RPG::EventCommand"
@@ -64,17 +64,18 @@ end
 [
   'Data/Actors.json',
   'Data/Animations.json',
+#  'Data/Areas.json',
   'Data/Armors.json',
-#  'Data/Classes.json',
+  'Data/Classes.json',
   'Data/CommonEvents.json',
   'Data/Enemies.json',
   'Data/Items.json',
-#  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
+  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
 #  'Data/MapInfos.json',
   'Data/Skills.json',
   'Data/States.json',
   'Data/System.json',
-#  'Data/Tilesets.json',
+  'Data/Tilesets.json',
   'Data/Troops.json',
   'Data/Weapons.json'
 ].each do |json|
@@ -85,6 +86,7 @@ end
   }
   data = JSON.parse(text)
   data_trans = nil
+  #p data.class
   if data.is_a?(Array)
   	data_trans = []
     data.each{ |d|
