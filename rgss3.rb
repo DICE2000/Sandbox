@@ -87,17 +87,10 @@ end
 class RPG::Map
   include Jsonable
 	def unpack_names
+		@display_name = RPG::unpack_str(@display_name)
+		@parallax_name = RPG::unpack_str(@parallax_name)
 		@bgm.unpack_names
 		@bgs.unpack_names
-		@parallax_name = RPG::unpack_str(@parallax_name)
-		if @events != {}
-			tmp = {}
-			tmp = @events.dup
-			@events = {}
-			tmp.each{|k, v|
-				@events[k] = v.unpack_names
-			}
-		end
 	end
   def initialize(width, height)
     @display_name = ''

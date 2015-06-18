@@ -2,6 +2,10 @@
 require 'jsonable'
 require 'zlib'
 require_relative 'rgss3'
+# 既存の不具合/15.6.18
+# このスクリプトで復帰させると、以降エディタ上にイベントが表示されない
+# （新規作成含む）
+# イベント自体は動く
 
 #追加メソッド
 def restore_rvdata2(list)
@@ -42,14 +46,23 @@ def restore_rvdata2(list)
 	return obj
 end
 
+def restore_events(ev)
+	restore_rvdata2(v)
+end
+
 def iterate_setting_value(target, list)
 	val = target.instance_variables
 	val.each{|d|
+		#マップイベントデータの場合
+		if d == :@events
+			list[d.to_s].each{|k, v|
+				target.events[k] = restore_rvdata2(v)
+			}
 		# 値がクラスオブジェクト
-		if list[d.to_s].is_a?(Hash)
+		elsif list[d.to_s].is_a?(Hash)
 			target.instance_variable_set(d, restore_rvdata2(list[d.to_s]))
 		# 値がクラスオブジェクトの配列
-	elsif list[d.to_s].is_a?(Array) && list[d.to_s][0].is_a?(Hash)
+		elsif list[d.to_s].is_a?(Array) && list[d.to_s][0].is_a?(Hash)
 			data_trans = []
 			list[d.to_s].each{|d|
 				data_trans << restore_rvdata2(d)
@@ -62,22 +75,23 @@ def iterate_setting_value(target, list)
 end
 
 [
-  'Data/Actors.json',
-  'Data/Animations.json',
+#  'Data/Actors.json',
+#  'Data/Animations.json',
 #  'Data/Areas.json',
-  'Data/Armors.json',
-  'Data/Classes.json',
-  'Data/CommonEvents.json',
-  'Data/Enemies.json',
-  'Data/Items.json',
-  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
+#  'Data/Armors.json',
+#  'Data/Classes.json',
+#  'Data/CommonEvents.json',
+#  'Data/Enemies.json',
+#  'Data/Items.json',
+	'Data/Map001.json'
+#  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
 #  'Data/MapInfos.json',
-  'Data/Skills.json',
-  'Data/States.json',
-  'Data/System.json',
-  'Data/Tilesets.json',
-  'Data/Troops.json',
-  'Data/Weapons.json'
+#  'Data/Skills.json',
+#  'Data/States.json',
+#  'Data/System.json',
+#  'Data/Tilesets.json',
+#  'Data/Troops.json',
+#  'Data/Weapons.json'
 ].each do |json|
   text = ''
   f = File.open(json, 'r:utf-8')
@@ -86,7 +100,6 @@ end
   }
   data = JSON.parse(text)
   data_trans = nil
-  #p data.class
   if data.is_a?(Array)
   	data_trans = []
     data.each{ |d|
@@ -96,10 +109,11 @@ end
     		data_trans << restore_rvdata2(d)
     	end
     }
-  elsif data.is_a?(Hash)	
+    elsif data.is_a?(Hash)
 		data_trans = restore_rvdata2(data)
-	end
-  File.open('Data/temp/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
+  end  
+  #p data_trans
+  File.open('Data/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
     file.write(Marshal.dump(data_trans))
   end
   f.close
