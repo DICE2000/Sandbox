@@ -883,7 +883,7 @@ class RPG::System
     @battle_end_me.unpack_names
     @gameover_me.unpack_names
     @sounds.each{|i| i.unpack_names}
-    @terms.unpack_names
+   	@terms.unpack_names
 		tmp = []
 		tmp = @elements.dup
 		@elements = []
@@ -920,7 +920,6 @@ class RPG::System
 		tmp.each{|i|
 			@variables << RPG::unpack_str(i).dup if i != nil
 		}
-		@terms.unpack_names
 	end
   def initialize
     @game_title = ''
@@ -964,6 +963,7 @@ class RPG::System
     @battler_name = ''
     @battler_hue = 0
     @edit_map_id = 1
+    @magic_number = 1
   end
   attr_accessor :game_title
   attr_accessor :version_id
@@ -1006,10 +1006,11 @@ class RPG::System
   attr_accessor :battler_name
   attr_accessor :battler_hue
   attr_accessor :edit_map_id
+  attr_accessor :magic_number
 end
 class RPG::System::Vehicle
-	include Jsonable
-	def unpack_names
+  include Jsonable
+  def unpack_names
 		@character_name = RPG::unpack_str(@character_name)
 		@bgm.unpack_names
   end

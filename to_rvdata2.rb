@@ -46,18 +46,17 @@ def restore_rvdata2(list)
 	return obj
 end
 
-def restore_events(ev)
-	restore_rvdata2(v)
-end
-
 def iterate_setting_value(target, list)
 	val = target.instance_variables
 	val.each{|d|
 		#マップイベントデータの場合
 		if d == :@events
 			list[d.to_s].each{|k, v|
-				target.events[k] = restore_rvdata2(v)
+				target.events[k.to_i] = restore_rvdata2(v)
 			}
+			#target.events.each_key{|key|
+			#	p key
+			#}
 		# 値がクラスオブジェクト
 		elsif list[d.to_s].is_a?(Hash)
 			target.instance_variable_set(d, restore_rvdata2(list[d.to_s]))
@@ -75,25 +74,25 @@ def iterate_setting_value(target, list)
 end
 
 [
-#  'Data/Actors.json',
-#  'Data/Animations.json',
+  'Data/Actors.json',
+  'Data/Animations.json',
 #  'Data/Areas.json',
-#  'Data/Armors.json',
-#  'Data/Classes.json',
-#  'Data/CommonEvents.json',
-#  'Data/Enemies.json',
-#  'Data/Items.json',
-	'Data/Map001.json'
-#  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
-#  'Data/MapInfos.json',
-#  'Data/Skills.json',
-#  'Data/States.json',
-#  'Data/System.json',
-#  'Data/Tilesets.json',
-#  'Data/Troops.json',
-#  'Data/Weapons.json'
+  'Data/Armors.json',
+  'Data/Classes.json',
+  'Data/CommonEvents.json',
+  'Data/Enemies.json',
+  'Data/Items.json',
+  *Dir.glob('Data/Map[0-9][0-9][0-9].json'),
+  'Data/MapInfos.json',
+  'Data/Skills.json',
+  'Data/States.json',
+  'Data/System.json',
+  'Data/Tilesets.json',
+  'Data/Troops.json',
+  'Data/Weapons.json'
 ].each do |json|
   text = ''
+  p json
   f = File.open(json, 'r:utf-8')
   f.each {|line|
   	text += line
@@ -109,9 +108,19 @@ end
     		data_trans << restore_rvdata2(d)
     	end
     }
-    elsif data.is_a?(Hash)
+  #あまり賢くない方法で対処（後で考える）
+  elsif data.is_a?(Hash)
+	  if json == 'Data/MapInfos.json'
+	  	data_trans = {}
+	  	data.each{|k, v|
+	  		data_trans[k.to_i] = restore_rvdata2(v)
+	  	}
+	  else
+	  	data_trans = restore_rvdata2(data)
+	  end
+	else
 		data_trans = restore_rvdata2(data)
-  end  
+  end
   #p data_trans
   File.open('Data/'+File.basename(json,'.json')+'.rvdata2', 'wb') do |file|
     file.write(Marshal.dump(data_trans))
