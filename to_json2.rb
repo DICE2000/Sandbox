@@ -3,9 +3,7 @@
 # author: dice2000
 # original author: aoitaku
 # https://gist.github.com/aoitaku/7822424
-
-#2015/6/27
-#制限事項：Areas.rvdata2とScripts.rvdata2に未対応
+#
 
 require 'jsonable'
 require 'zlib'

@@ -2,6 +2,11 @@
 require 'jsonable'
 require 'zlib'
 require_relative 'rgss3'
+
+#2015/6/27
+#制限事項：Areas.rvdata2とScripts.rvdata2に未対応
+
+#↓解決済（2015/6/27）
 # 既存の不具合/15.6.18
 # このスクリプトで復帰させると、以降エディタ上にイベントが表示されない
 # （新規作成含む）
