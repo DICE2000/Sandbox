@@ -10,6 +10,7 @@
 #
 require 'jsonable'
 class Color
+	include Jsonable
   attr_accessor :red, :green, :blue, :alpha
   def initialize(data)
     @red, @green, @blue, @alpha = *data
@@ -22,6 +23,7 @@ class Color
   end
 end
 class Table
+	include Jsonable
   def initialize(data)
     @num_of_dimensions,
     @xsize, @ysize, @zsize,
@@ -53,6 +55,7 @@ class Table
   end
 end
 class Tone
+	include Jsonable
   attr_accessor :red, :green, :blue, :gray
   def initialize(data)
     @red, @green, @blue, @gray = *data
@@ -68,7 +71,7 @@ end
 # ここまでは元ファイルと定義が同一
 #
 module RPG
-	def self.reform_encode(str)
+	def self.unpack_str(str)
 		tmp_ary = str.unpack("U*")
 		str = ""
 		tmp_ary.each{ |c|
@@ -84,10 +87,10 @@ end
 #
 class RPG::Actor
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@character_name = RPG::reform_encode(@character_name)
-		@face_name = RPG::reform_encode(@face_name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@character_name = RPG::unpack_str(@character_name)
+		@face_name = RPG::unpack_str(@face_name)
 	end
 	def initialize
 	  @id = 0
@@ -100,15 +103,16 @@ class RPG::Actor
 	  @character_index = 0
 	  @face_name = ""
 	  @face_index = 0
-	  @parameters = Table.new(6,100)
-	  for i in 1..99
-	    @parameters[0,i] = 400+i*50
-	    @parameters[1,i] = 80+i*10
-	    @parameters[2,i] = 15+i*5/4
-	    @parameters[3,i] = 15+i*5/4
-	    @parameters[4,i] = 20+i*5/2
-	    @parameters[5,i] = 20+i*5/2
-	  end
+	  @parameters = nil
+	  #@parameters = Table.new(6,100)
+	  #for i in 1..99
+	  #  @parameters[0,i] = 400+i*50
+	  #  @parameters[1,i] = 80+i*10
+	  #  @parameters[2,i] = 15+i*5/4
+	  #  @parameters[3,i] = 15+i*5/4
+	  #  @parameters[4,i] = 20+i*5/2
+	  #  @parameters[5,i] = 20+i*5/2
+	  #end
 	  @weapon_id = 0
 	  @armor1_id = 0
 	  @armor2_id = 0
@@ -149,10 +153,10 @@ end
 #
 class RPG::Animation
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@animation1_name = RPG::reform_encode(@animation1_name)
-		@animation2_name = RPG::reform_encode(@animation2_name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@animation1_name = RPG::unpack_str(@animation1_name)
+		@animation2_name = RPG::unpack_str(@animation2_name)
 	end
 	def initialize
 	  @id = 0
@@ -182,18 +186,19 @@ class RPG::Animation::Frame
   include Jsonable
   def initialize
     @cell_max = 0
-    @cell_data = Table.new(0, 0)
+    @cell_data = Table.new([0, 0])
   end
   attr_accessor :cell_max
   attr_accessor :cell_data
 end
 
 class RPG::Animation::Timing
+  include Jsonable
   def initialize
     @frame = 0
     @se = RPG::SE.new("", 80)
     @flash_scope = 0
-    @flash_color = Color.new(255,255,255,255)
+    @flash_color = Color.new([255,255,255,255])
     @flash_duration = 5
   end
   attr_accessor :frame
@@ -205,8 +210,8 @@ end
 
 class RPG::Area
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
 	def initialize
 	  @id = 0
@@ -226,10 +231,10 @@ end
 
 class RPG::BaseItem
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@description = RPG::reform_encode(@description)
-		@note = RPG::reform_encode(@note)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@description = RPG::unpack_str(@description)
+		@note = RPG::unpack_str(@note)
 	end
 	def initialize
 	  @id = 0
@@ -246,6 +251,7 @@ class RPG::BaseItem
 end
 
 class RPG::Armor < RPG::BaseItem
+	include Jsonable
 	def initialize
 	  super
 	  @kind = 0
@@ -278,6 +284,7 @@ class RPG::Armor < RPG::BaseItem
 end
 
 class RPG::Weapon < RPG::BaseItem
+	include Jsonable
 	def initialize
 	  super
 	  @animation_id = 0
@@ -310,6 +317,7 @@ class RPG::Weapon < RPG::BaseItem
 end
 
 class RPG::UsableItem < RPG::BaseItem
+	include Jsonable
 	def initialize
 	  super
 	  @scope = 0
@@ -387,6 +395,7 @@ class RPG::UsableItem < RPG::BaseItem
 end
 
 class RPG::Item < RPG::UsableItem
+	include Jsonable
 	def initialize
 	  super
 	  @scope = 7
@@ -411,9 +420,10 @@ end
 
 class RPG::Skill < RPG::UsableItem
 	include Jsonable
-	def force_encording
-		@message1 = RPG::reform_encode(@message1)
-		@message2 = RPG::reform_encode(@message2)
+	def unpack_names
+		super
+		@message1 = RPG::unpack_str(@message1)
+		@message2 = RPG::unpack_str(@message2)
 	end
 	def initialize
 	  super
@@ -431,8 +441,8 @@ end
 
 class RPG::AudioFile
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
 	def initialize(name = "", volume = 100, pitch = 100)
 	  @name = name
@@ -521,9 +531,9 @@ end
 
 class RPG::Class
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@skill_name = RPG::reform_encode(@skill_name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@skill_name = RPG::unpack_str(@skill_name)
 	end
 	def initialize
 	  @id = 0
@@ -550,6 +560,7 @@ class RPG::Class
 end
 
 class RPG::Class::Learning
+  include Jsonable
   def initialize
     @level = 1
     @skill_id = 1
@@ -560,9 +571,9 @@ end
 
 class RPG::CommonEvent
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@list.each{ |i| i.force_encording }
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@list.each{ |i| i.unpack_names }
 	end
 	def initialize
 	  @id = 0
@@ -580,10 +591,10 @@ end
 
 class RPG::Enemy
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@battler_name = RPG::reform_encode(@battler_name)
-		@note = RPG::reform_encode(@note)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@battler_name = RPG::unpack_str(@battler_name)
+		@note = RPG::unpack_str(@note)
 	end
 	def initialize
 	  @id = 0
@@ -674,9 +685,9 @@ end
 
 class RPG::Event
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@pages.each{ |i| i.force_encording }
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@pages.each{ |i| i.unpack_names }
 	end
 	def initialize(x = 0, y = 0)
 	  @id = 0
@@ -694,9 +705,9 @@ end
 
 class RPG::Event::Page
   include Jsonable
-  def force_encording
-	@graphic.force_encording
-	@list.each{ |i| i.force_encording }
+  def unpack_names
+		@graphic.unpack_names
+		@list.each{ |i| i.unpack_names }
   end
   def initialize
     @condition = RPG::Event::Page::Condition.new
@@ -729,7 +740,7 @@ class RPG::Event::Page
 end
 
 class RPG::Event::Page::Condition
-    include Jsonable
+  include Jsonable
 	def initialize
 	  @switch1_valid = false
 	  @switch2_valid = false
@@ -762,8 +773,8 @@ end
 
 class RPG::Event::Page::Graphic
 	include Jsonable
-	def force_encording
-		@character_name = RPG::reform_encode(@character_name)
+	def unpack_names
+		@character_name = RPG::unpack_str(@character_name)
 	end
 	def initialize
 	  @tile_id = 0
@@ -781,13 +792,13 @@ end
 
 class RPG::EventCommand
 	include Jsonable
-	def force_encording
+	def unpack_names
 		tmp = []
 		tmp = @parameters.dup
 		@parameters = []
 		tmp.each{|i|
 			if i.is_a?(String)
-				@parameters << RPG::reform_encode(i).dup
+				@parameters << RPG::unpack_str(i).dup
 			else
 				@parameters << i
 			end
@@ -805,16 +816,13 @@ end
 
 class RPG::Map
 	include Jsonable
-	def force_encording
-		@bgm.force_encording
-		@bgs.force_encording
-		@parallax_name = RPG::reform_encode(@parallax_name)
+	def unpack_names
+		@bgm.unpack_names
+		@bgs.unpack_names
+		@parallax_name = RPG::unpack_str(@parallax_name)
 		if @events != {}
-			tmp = {}
-			tmp = @events.dup
-			@events = {}
-			tmp.each{|k, v|
-				@events[k] = v.force_encording
+			@events.each_value{|v|
+				v.unpack_names
 			}
 		end
 	end
@@ -835,7 +843,7 @@ class RPG::Map
 	  @parallax_sx = 0
 	  @parallax_sy = 0
 	  @parallax_show = false
-	  @data = Table.new(width, height, 3)
+	  @data = Table.new([width, height, 3])
 	  @events = {}
 	end
 	attr_accessor :width
@@ -860,8 +868,8 @@ end
 
 class RPG::MapInfo
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
 	def initialize
 	  @name = ""
@@ -905,13 +913,13 @@ end
 
 class RPG::State
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
-		@message1 = RPG::reform_encode(@message1)
-		@message2 = RPG::reform_encode(@message2)
-		@message3 = RPG::reform_encode(@message3)
-		@message4 = RPG::reform_encode(@message4)
-		@note = RPG::reform_encode(@note)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
+		@message1 = RPG::unpack_str(@message1)
+		@message2 = RPG::unpack_str(@message2)
+		@message3 = RPG::unpack_str(@message3)
+		@message4 = RPG::unpack_str(@message4)
+		@note = RPG::unpack_str(@note)
 	end
 	def initialize
 	  @id = 0
@@ -967,28 +975,28 @@ end
 
 class RPG::System
 	include Jsonable
-	def force_encording
-		@game_title = RPG::reform_encode(@game_title)
-		@battler_name = RPG::reform_encode(@battler_name)
+	def unpack_names
+		@game_title = RPG::unpack_str(@game_title)
+		@battler_name = RPG::unpack_str(@battler_name)
 		tmp = []
 		tmp = @elements.dup
 		@elements = []
 		tmp.each{|i|
-				@elements << RPG::reform_encode(i).dup if i != nil
+				@elements << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @switches.dup
 		@switches = []
 		tmp.each{|i|
-			@switches << RPG::reform_encode(i).dup if i != nil
+			@switches << RPG::unpack_str(i).dup if i != nil
 		}
 		tmp = []
 		tmp = @variables.dup
 		@variables = []
 		tmp.each{|i|
-			@variables << RPG::reform_encode(i).dup if i != nil
+			@variables << RPG::unpack_str(i).dup if i != nil
 		}
-		@terms.force_encording
+		@terms.unpack_names
 	end
 	def initialize
 	  @game_title = ""
@@ -998,7 +1006,8 @@ class RPG::System
 	  @switches = [nil, ""]
 #	  @magic_number = 0
 	  @variables = [nil, ""]
-	  @passages = Table.new(8192)
+	  @passages = nil
+	  #@passages = Table.new([8192])
 	  @boat = RPG::System::Vehicle.new
 	  @ship = RPG::System::Vehicle.new
 	  @airship = RPG::System::Vehicle.new
@@ -1047,40 +1056,40 @@ end
 
 class RPG::System::Terms
 	include Jsonable
-	def force_encording
-		@level = RPG::reform_encode(@level)
-		@level_a = RPG::reform_encode(@level_a)
-		@hp = RPG::reform_encode(@hp)
-		@hp_a = RPG::reform_encode(@hp_a)
-		@mp = RPG::reform_encode(@mp)
-		@mp_a = RPG::reform_encode(@mp_a)
-		@atk = RPG::reform_encode(@atk)
-		@def = RPG::reform_encode(@def)
-		@spi = RPG::reform_encode(@spi)
-		@agi = RPG::reform_encode(@agi)
-		@weapon = RPG::reform_encode(@weapon)
-		@armor1 = RPG::reform_encode(@armor1)
-		@armor2 = RPG::reform_encode(@armor2)
-		@armor3 = RPG::reform_encode(@armor3)
-		@armor4 = RPG::reform_encode(@armor4)
-		@weapon1 = RPG::reform_encode(@weapon1)
-		@weapon2 = RPG::reform_encode(@weapon2)
-		@attack = RPG::reform_encode(@attack)
-		@skill = RPG::reform_encode(@skill)
-		@guard = RPG::reform_encode(@guard)
-		@item = RPG::reform_encode(@item)
-		@equip = RPG::reform_encode(@equip)
-		@status = RPG::reform_encode(@status)
-		@save = RPG::reform_encode(@save)
-		@game_end = RPG::reform_encode(@game_end)
-		@fight = RPG::reform_encode(@fight)
-		@escape = RPG::reform_encode(@escape)
-		@new_game = RPG::reform_encode(@new_game)
-		@continue = RPG::reform_encode(@continue)
-		@shutdown = RPG::reform_encode(@shutdown)
-		@to_title = RPG::reform_encode(@to_title)
-		@cancel = RPG::reform_encode(@cancel)
-		@gold = RPG::reform_encode(@gold)
+	def unpack_names
+		@level = RPG::unpack_str(@level)
+		@level_a = RPG::unpack_str(@level_a)
+		@hp = RPG::unpack_str(@hp)
+		@hp_a = RPG::unpack_str(@hp_a)
+		@mp = RPG::unpack_str(@mp)
+		@mp_a = RPG::unpack_str(@mp_a)
+		@atk = RPG::unpack_str(@atk)
+		@def = RPG::unpack_str(@def)
+		@spi = RPG::unpack_str(@spi)
+		@agi = RPG::unpack_str(@agi)
+		@weapon = RPG::unpack_str(@weapon)
+		@armor1 = RPG::unpack_str(@armor1)
+		@armor2 = RPG::unpack_str(@armor2)
+		@armor3 = RPG::unpack_str(@armor3)
+		@armor4 = RPG::unpack_str(@armor4)
+		@weapon1 = RPG::unpack_str(@weapon1)
+		@weapon2 = RPG::unpack_str(@weapon2)
+		@attack = RPG::unpack_str(@attack)
+		@skill = RPG::unpack_str(@skill)
+		@guard = RPG::unpack_str(@guard)
+		@item = RPG::unpack_str(@item)
+		@equip = RPG::unpack_str(@equip)
+		@status = RPG::unpack_str(@status)
+		@save = RPG::unpack_str(@save)
+		@game_end = RPG::unpack_str(@game_end)
+		@fight = RPG::unpack_str(@fight)
+		@escape = RPG::unpack_str(@escape)
+		@new_game = RPG::unpack_str(@new_game)
+		@continue = RPG::unpack_str(@continue)
+		@shutdown = RPG::unpack_str(@shutdown)
+		@to_title = RPG::unpack_str(@to_title)
+		@cancel = RPG::unpack_str(@cancel)
+		@gold = RPG::unpack_str(@gold)
 	end
   def initialize
     @level = ""
@@ -1174,8 +1183,8 @@ end
 
 class RPG::System::Vehicle
 	include Jsonable
-	def force_encording
-		@character_name = RPG::reform_encode(@character_name)
+	def unpack_names
+		@character_name = RPG::unpack_str(@character_name)
 	end
   def initialize
     @character_name = ""
@@ -1195,14 +1204,15 @@ end
 
 class RPG::Troop
 	include Jsonable
-	def force_encording
-		@name = RPG::reform_encode(@name)
+	def unpack_names
+		@name = RPG::unpack_str(@name)
 	end
 	def initialize
 	  @id = 0
 	  @name = ""
 	  @members = []
-	  @pages = [RPG::BattleEventPage.new]
+	  @pages = [RPG::Troop::Page.new]
+	  #@pages = [RPG::BattleEventPage.new]
 	end
 	attr_accessor :id
 	attr_accessor :name
